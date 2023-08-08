@@ -2,15 +2,14 @@ package club.minota.nana
 
 import club.minota.nana.commands.ToggleEndCommand
 import club.minota.nana.commands.ToggleNetherCommand
-import club.minota.nana.listeners.PlayerChatListener
-import club.minota.nana.listeners.PlayerDeathListener
-import club.minota.nana.listeners.PlayerJoinListener
-import club.minota.nana.listeners.PortalListener
+import club.minota.nana.listeners.*
 import club.minota.nana.utils.Settings
 import net.kyori.adventure.text.minimessage.MiniMessage
 import org.bukkit.Bukkit
-import org.bukkit.ChatColor
+import org.bukkit.Material
 import org.bukkit.attribute.Attribute
+import org.bukkit.inventory.ItemStack
+import org.bukkit.inventory.ShapedRecipe
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scoreboard.DisplaySlot
 import org.bukkit.scoreboard.Objective
@@ -34,8 +33,23 @@ class Nana : JavaPlugin() {
         }
         Settings.save()
 
+        val heartItem = ItemStack(Material.RED_DYE)
+        val heartItemMeta = heartItem.itemMeta
+        heartItemMeta.displayName(MiniMessage.miniMessage().deserialize("<color:#eb2626>Heart Item"))
+        heartItemMeta.lore(listOf(
+            MiniMessage.miniMessage().deserialize("<gray>This item, once right clicked, will grant you an extra heart!</gray>")
+        ))
+        heartItem.itemMeta = heartItemMeta
+        val recipe = ShapedRecipe(heartItem)
+        recipe.shape("NTN", "TGT", "NTN")
+        recipe.setIngredient('N', Material.NETHERITE_INGOT)
+        recipe.setIngredient('T', Material.TOTEM_OF_UNDYING)
+        recipe.setIngredient('G', Material.GOLDEN_APPLE)
+        Bukkit.addRecipe(recipe)
+
         Bukkit.getServer().pluginManager.registerEvents(PlayerDeathListener(), this)
         Bukkit.getServer().pluginManager.registerEvents(PlayerJoinListener(), this)
+        Bukkit.getServer().pluginManager.registerEvents(PlayerInteractListener(), this)
         Bukkit.getServer().pluginManager.registerEvents(PlayerChatListener(), this)
         Bukkit.getServer().pluginManager.registerEvents(PortalListener(), this)
 
