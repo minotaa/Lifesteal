@@ -7,6 +7,7 @@ import club.minota.nana.utils.Settings
 import net.kyori.adventure.text.minimessage.MiniMessage
 import org.bukkit.Bukkit
 import org.bukkit.Material
+import org.bukkit.NamespacedKey
 import org.bukkit.attribute.Attribute
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.ShapedRecipe
@@ -37,10 +38,11 @@ class Nana : JavaPlugin() {
         val heartItemMeta = heartItem.itemMeta
         heartItemMeta.displayName(MiniMessage.miniMessage().deserialize("<color:#eb2626>Heart Item"))
         heartItemMeta.lore(listOf(
-            MiniMessage.miniMessage().deserialize("<gray>This item, once right clicked, will grant you an extra heart!</gray>")
+            MiniMessage.miniMessage().deserialize( "<gray>This item, once right clicked, will grant you an extra heart!</gray>")
         ))
         heartItem.itemMeta = heartItemMeta
-        val recipe = ShapedRecipe(heartItem)
+        val key = NamespacedKey(this, "heart_item")
+        val recipe = ShapedRecipe(key, heartItem)
         recipe.shape("NTN", "TGT", "NTN")
         recipe.setIngredient('N', Material.NETHERITE_INGOT)
         recipe.setIngredient('T', Material.TOTEM_OF_UNDYING)
