@@ -1,0 +1,6 @@
+name: Nana
+description: Lifesteal plugin
+main: club.minota.nana.Nana
+api-version: 1.13
+author: Minota <juanpichardo456@icloud.com>
+version: 1.0.0
