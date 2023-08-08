@@ -4,3 +4,18 @@ main: club.minota.nana.Nana
 api-version: 1.13
 author: Minota <juanpichardo456@icloud.com>
 version: 1.0.0
+commands:
+  toggleend:
+    aliases:
+      - te
+      - togglee
+      - toggletheend
+      - toggle-end
+    description: Turns on/off The End.
+  togglenether:
+    aliases:
+      - tn
+      - togglen
+      - togglethenether
+      - toggle-nether
+    description: Turns on/off the Nether.
