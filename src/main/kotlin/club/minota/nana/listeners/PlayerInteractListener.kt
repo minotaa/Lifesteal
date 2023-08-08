@@ -53,8 +53,8 @@ class PlayerInteractListener : Listener {
     }
 
 
-    fun removeManually(item: ItemStack, inventory: Inventory): Int {
-        var amountLeft = item.amount
+    fun removeOne(item: ItemStack, inventory: Inventory): Int {
+        var amountLeft = 1
         var currentSlot = 0
         while (currentSlot < effectiveSize(inventory) && amountLeft > 0) {
             val currentItem = inventory.getItem(currentSlot)
@@ -73,7 +73,7 @@ class PlayerInteractListener : Listener {
     fun onPlayerInteract(e: PlayerInteractEvent) {
         if (e.hasItem() && e.item!!.hasItemMeta() && e.item!!.itemMeta.displayName() == MiniMessage.miniMessage().deserialize("<color:#eb2626>Heart Item")) {
             e.isCancelled = true
-            removeManually(e.item!!, e.player.inventory)
+            removeOne(e.item!!, e.player.inventory)
             e.player.getAttribute(Attribute.GENERIC_MAX_HEALTH)!!.baseValue = e.player.getAttribute(
                 Attribute.GENERIC_MAX_HEALTH)!!.value + 2.0
             e.player.sendMessage(MiniMessage.miniMessage().deserialize("<red>!!!</red> You have redeemed a heart item! (new hearts: <color:#eb2626>${e.player.getAttribute(
