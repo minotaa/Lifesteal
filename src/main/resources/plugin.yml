@@ -19,3 +19,7 @@ commands:
       - togglethenether
       - toggle-nether
     description: Turns on/off the Nether.
+  withdraw:
+    aliases:
+      - wd
+    description: Takes away one heart voluntarily and grants it to you as a heart item.

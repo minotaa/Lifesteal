@@ -2,6 +2,7 @@ package club.minota.nana
 
 import club.minota.nana.commands.ToggleEndCommand
 import club.minota.nana.commands.ToggleNetherCommand
+import club.minota.nana.commands.WithdrawCommand
 import club.minota.nana.listeners.*
 import club.minota.nana.utils.Settings
 import net.kyori.adventure.text.minimessage.MiniMessage
@@ -15,11 +16,32 @@ import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scoreboard.DisplaySlot
 import org.bukkit.scoreboard.Objective
 import org.bukkit.scoreboard.Scoreboard
+import java.net.HttpURLConnection
+import java.net.URL
 import kotlin.math.floor
 
 class Nana : JavaPlugin() {
     companion object {
         lateinit var inst: Nana
+    }
+
+    fun postToActivityLog(message: String) {
+        with (URL(Settings.data!!.getString("webhook-url")).openConnection() as HttpURLConnection) {
+            try {
+                requestMethod = "POST"
+                setRequestProperty("Content-Type", "application/json")
+                setRequestProperty("User-Agent", "Mozilla/5.0")
+                doOutput = true
+                val json = "{\"content\": \":palm_tree: :evergreen_tree: :deciduous_tree: | ${message}\"}"
+                outputStream.write(json.toByteArray())
+                outputStream.flush()
+                outputStream.close()
+                inputStream.close()
+                disconnect()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     override fun onEnable() {
@@ -49,6 +71,7 @@ class Nana : JavaPlugin() {
         recipe.setIngredient('G', Material.GOLDEN_APPLE)
         Bukkit.addRecipe(recipe)
 
+        Bukkit.getServer().pluginManager.registerEvents(ActivityLogListener(), this)
         Bukkit.getServer().pluginManager.registerEvents(PlayerDeathListener(), this)
         Bukkit.getServer().pluginManager.registerEvents(PlayerJoinListener(), this)
         Bukkit.getServer().pluginManager.registerEvents(PlayerInteractListener(), this)
@@ -56,6 +79,7 @@ class Nana : JavaPlugin() {
         Bukkit.getServer().pluginManager.registerEvents(PortalListener(), this)
 
         this.getCommand("toggleend")!!.setExecutor(ToggleEndCommand())
+        this.getCommand("withdraw")!!.setExecutor(WithdrawCommand())
         this.getCommand("togglenether")!!.setExecutor(ToggleNetherCommand())
 
         Bukkit.getLogger().info("The plugin has successfully loaded.")
