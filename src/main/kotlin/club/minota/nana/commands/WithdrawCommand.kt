@@ -1,5 +1,6 @@
 package club.minota.nana.commands
 
+import club.minota.nana.Nana
 import net.kyori.adventure.text.minimessage.MiniMessage
 import org.bukkit.Material
 import org.bukkit.attribute.Attribute
@@ -45,6 +46,7 @@ class WithdrawCommand : CommandExecutor {
         ))
         heartItem.itemMeta = heartItemMeta
         bulkItems(sender, arrayListOf(heartItem))
+        Nana.inst.postToActivityLog("**${sender.name}** withdrew a heart! They now have ${floor(sender.getAttribute(Attribute.GENERIC_MAX_HEALTH)!!.value / 2).toInt()} hearts now!")
         sender.sendMessage(MiniMessage.miniMessage().deserialize("<yellow>Successfully granted you a Heart Item! If your inventory is full, it might've been dropped on the floor!"))
         return true
     }

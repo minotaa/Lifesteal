@@ -1,5 +1,6 @@
 package club.minota.nana.listeners
 
+import club.minota.nana.Nana
 import net.kyori.adventure.text.minimessage.MiniMessage
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
@@ -11,6 +12,7 @@ import org.bukkit.event.Listener
 import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.event.player.PlayerRespawnEvent
 import org.bukkit.inventory.ItemStack
+import kotlin.math.floor
 
 class PlayerDeathListener : Listener {
     @EventHandler
@@ -22,6 +24,7 @@ class PlayerDeathListener : Listener {
             heartItemMeta.lore(listOf(
                 MiniMessage.miniMessage().deserialize("<gray>This item, once right clicked, will grant you an extra heart!</gray>")
             ))
+            Nana.inst.postToActivityLog("**${e.entity.name}** died & lost a heart! They now have ${floor(e.player.getAttribute(Attribute.GENERIC_MAX_HEALTH)!!.value / 2).toInt()} hearts now!")
             heartItem.itemMeta = heartItemMeta
             e.drops.add(heartItem)
             e.player.getAttribute(Attribute.GENERIC_MAX_HEALTH)!!.baseValue = e.player.getAttribute(
@@ -36,6 +39,7 @@ class PlayerDeathListener : Listener {
     fun onPlayerRespawn(e: PlayerRespawnEvent) {
         if ((e.player.getAttribute(Attribute.GENERIC_MAX_HEALTH)!!.value.toInt() / 2) == 0) {
             e.player.gameMode = GameMode.SPECTATOR
+            Nana.inst.postToActivityLog("**${e.player.name}** lost all their hearts! They're eliminated!")
             Bukkit.broadcast(MiniMessage.miniMessage().deserialize("<red>${e.player.name} lost all their hearts! They're eliminated!"))
             e.player.sendMessage(MiniMessage.miniMessage().deserialize("<yellow>You've been set to Spectator mode as you've lost all your hearts."))
         }

@@ -1,8 +1,6 @@
 package club.minota.nana
 
-import club.minota.nana.commands.ToggleEndCommand
-import club.minota.nana.commands.ToggleNetherCommand
-import club.minota.nana.commands.WithdrawCommand
+import club.minota.nana.commands.*
 import club.minota.nana.listeners.*
 import club.minota.nana.utils.Settings
 import net.kyori.adventure.text.minimessage.MiniMessage
@@ -74,13 +72,16 @@ class Nana : JavaPlugin() {
         Bukkit.getServer().pluginManager.registerEvents(ActivityLogListener(), this)
         Bukkit.getServer().pluginManager.registerEvents(PlayerDeathListener(), this)
         Bukkit.getServer().pluginManager.registerEvents(PlayerJoinListener(), this)
+        Bukkit.getServer().pluginManager.registerEvents(CombatTagListener(), this)
         Bukkit.getServer().pluginManager.registerEvents(PlayerInteractListener(), this)
         Bukkit.getServer().pluginManager.registerEvents(PlayerChatListener(), this)
         Bukkit.getServer().pluginManager.registerEvents(PortalListener(), this)
 
         this.getCommand("toggleend")!!.setExecutor(ToggleEndCommand())
-        this.getCommand("withdraw")!!.setExecutor(WithdrawCommand())
         this.getCommand("togglenether")!!.setExecutor(ToggleNetherCommand())
+        this.getCommand("withdraw")!!.setExecutor(WithdrawCommand())
+        this.getCommand("sethome")!!.setExecutor(SetHomeCommand())
+        this.getCommand("home")!!.setExecutor(HomeCommand())
 
         Bukkit.getLogger().info("The plugin has successfully loaded.")
 

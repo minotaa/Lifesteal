@@ -23,3 +23,11 @@ commands:
     aliases:
       - wd
     description: Takes away one heart voluntarily and grants it to you as a heart item.
+  home:
+    aliases:
+      - h
+    description: Teleports to your pre-set home.
+  sethome:
+    aliases:
+      - sh
+    description: Sets your home location.

@@ -1,5 +1,6 @@
 package club.minota.nana.listeners
 
+import club.minota.nana.Nana
 import net.kyori.adventure.text.minimessage.MiniMessage
 import org.bukkit.attribute.Attribute
 import org.bukkit.event.EventHandler
@@ -7,6 +8,7 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
+import kotlin.math.floor
 
 class PlayerInteractListener : Listener {
     fun similarItems(one: ItemStack?, two: ItemStack?): Boolean {
@@ -78,6 +80,7 @@ class PlayerInteractListener : Listener {
                 Attribute.GENERIC_MAX_HEALTH)!!.value + 2.0
             e.player.sendMessage(MiniMessage.miniMessage().deserialize("<red>!!!</red> You have redeemed a heart item! (new hearts: <color:#eb2626>${e.player.getAttribute(
                 Attribute.GENERIC_MAX_HEALTH)!!.value.toInt() / 2}❤</color><white>) <red>!!!</red>"))
+            Nana.inst.postToActivityLog("**${e.player.name}** redeemed a heart! They now have ${floor(e.player.getAttribute(Attribute.GENERIC_MAX_HEALTH)!!.value / 2).toInt()} hearts now!")
         }
     }
 }

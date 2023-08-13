@@ -13,7 +13,7 @@ import org.bukkit.event.player.PlayerQuitEvent
 class ActivityLogListener : Listener {
     @EventHandler
     fun onPlayerAdvancement(e: PlayerAdvancementDoneEvent) {
-        Nana.inst.postToActivityLog("**${e.player.name}** has completed the advancement [${e.advancement.display!!.title()}]")
+        Nana.inst.postToActivityLog("**${e.player.name}** has completed the advancement [${(e.advancement.displayName() as TextComponent).content()}]")
     }
 
     @EventHandler
