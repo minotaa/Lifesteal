@@ -1,6 +1,7 @@
 package club.minota.nana.listeners
 
 import club.minota.nana.Nana
+import club.minota.nana.utils.Settings
 import net.kyori.adventure.text.minimessage.MiniMessage
 import org.bukkit.entity.Arrow
 import org.bukkit.entity.Player
@@ -15,7 +16,7 @@ class CombatTag(val player: Player) : BukkitRunnable() {
     override fun run() {
         timer -= 1
         if (timer == 0) {
-            player.sendMessage(MiniMessage.miniMessage().deserialize("<yellow>You are free to use /home again."))
+            player.sendMessage(MiniMessage.miniMessage().deserialize("<yellow>You are no longer combat tagged."))
             cancel()
             CombatTagListener.tags[player.uniqueId] = null
         }
@@ -29,6 +30,9 @@ class CombatTagListener : Listener {
 
     @EventHandler
     fun onPlayerDamageByPlayer(e: EntityDamageByEntityEvent) {
+        if (!Settings.config.getBoolean("options.combat-tag")) {
+            return
+        }
         if (e.damager is Player && e.entity is Player) {
             if (tags[e.entity.uniqueId] != null) {
                 tags[e.entity.uniqueId]!!.timer = 30

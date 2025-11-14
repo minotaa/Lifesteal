@@ -1,6 +1,7 @@
 package club.minota.nana.listeners
 
 import club.minota.nana.Nana
+import club.minota.nana.utils.Settings
 import net.kyori.adventure.text.minimessage.MiniMessage
 import org.bukkit.attribute.Attribute
 import org.bukkit.event.EventHandler
@@ -75,12 +76,17 @@ class PlayerInteractListener : Listener {
     fun onPlayerInteract(e: PlayerInteractEvent) {
         if (e.hasItem() && e.item!!.hasItemMeta() && e.item!!.itemMeta.displayName() == MiniMessage.miniMessage().deserialize("<color:#eb2626>Heart Item")) {
             e.isCancelled = true
+            val maxHealth = e.player.getAttribute(Attribute.MAX_HEALTH)!!.baseValue
+            if (maxHealth >= (Settings.config.getDouble("options.max-lifesteal-hearts") * 2.0)) {
+                e.player.sendMessage(MiniMessage.miniMessage().deserialize("<red>!!!</red> You are at the maximum amount of extra health."))
+                return
+            }
+
             removeOne(e.item!!, e.player.inventory)
-            e.player.getAttribute(Attribute.GENERIC_MAX_HEALTH)!!.baseValue = e.player.getAttribute(
-                Attribute.GENERIC_MAX_HEALTH)!!.value + 2.0
+            e.player.getAttribute(Attribute.MAX_HEALTH)!!.baseValue = maxHealth + 2.0
             e.player.sendMessage(MiniMessage.miniMessage().deserialize("<red>!!!</red> You have redeemed a heart item! (new hearts: <color:#eb2626>${e.player.getAttribute(
-                Attribute.GENERIC_MAX_HEALTH)!!.value.toInt() / 2}❤</color><white>) <red>!!!</red>"))
-            Nana.inst.postToActivityLog("**${e.player.name}** redeemed a heart! They now have ${floor(e.player.getAttribute(Attribute.GENERIC_MAX_HEALTH)!!.value / 2).toInt()} hearts now!")
+                Attribute.MAX_HEALTH)!!.value.toInt() / 2}❤</color><white>) <red>!!!</red>"))
+            Nana.inst.postToActivityLog("**${e.player.name}** redeemed a heart! They now have ${floor(e.player.getAttribute(Attribute.MAX_HEALTH)!!.value / 2).toInt()} hearts now!")
         }
     }
 }

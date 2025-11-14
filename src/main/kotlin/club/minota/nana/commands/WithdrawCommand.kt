@@ -26,18 +26,18 @@ class WithdrawCommand : CommandExecutor {
         }
     }
 
-    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>?): Boolean {
+    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
         if (sender !is Player) {
             sender.sendMessage("You can't use this command as you are not a player.")
             return false
         }
-        val mh = floor(sender.getAttribute(Attribute.GENERIC_MAX_HEALTH)!!.value / 2).toInt()
+        val mh = floor(sender.getAttribute(Attribute.MAX_HEALTH)!!.value / 2).toInt()
         if (mh < 2) {
             sender.sendMessage(MiniMessage.miniMessage().deserialize("<red>You have too little hearts to use this command!</red>"))
             return false
         }
-        sender.getAttribute(Attribute.GENERIC_MAX_HEALTH)!!.baseValue = sender.getAttribute(
-            Attribute.GENERIC_MAX_HEALTH)!!.value - 2.0
+        sender.getAttribute(Attribute.MAX_HEALTH)!!.baseValue = sender.getAttribute(
+            Attribute.MAX_HEALTH)!!.value - 2.0
         val heartItem = ItemStack(Material.RED_DYE)
         val heartItemMeta = heartItem.itemMeta
         heartItemMeta.displayName(MiniMessage.miniMessage().deserialize("<color:#eb2626>Heart Item"))
@@ -46,7 +46,7 @@ class WithdrawCommand : CommandExecutor {
         ))
         heartItem.itemMeta = heartItemMeta
         bulkItems(sender, arrayListOf(heartItem))
-        Nana.inst.postToActivityLog("**${sender.name}** withdrew a heart! They now have ${floor(sender.getAttribute(Attribute.GENERIC_MAX_HEALTH)!!.value / 2).toInt()} hearts now!")
+        Nana.inst.postToActivityLog("**${sender.name}** withdrew a heart! They now have ${floor(sender.getAttribute(Attribute.MAX_HEALTH)!!.value / 2).toInt()} hearts now!")
         sender.sendMessage(MiniMessage.miniMessage().deserialize("<yellow>Successfully granted you a Heart Item! If your inventory is full, it might've been dropped on the floor!"))
         return true
     }

@@ -12,6 +12,6 @@ class PlayerChatListener : Listener {
     @EventHandler
     fun onPlayerChat(e: AsyncChatEvent) {
         e.isCancelled = true
-        Bukkit.broadcast(MiniMessage.miniMessage().deserialize("<color:#eb2626>${e.player.getAttribute(Attribute.GENERIC_MAX_HEALTH)!!.value.toInt() / 2}❤</color> <reset>${e.player.name}: ${(e.message() as TextComponent).content()}</reset>"))
+        Bukkit.broadcast(MiniMessage.miniMessage().deserialize("<color:#eb2626>${e.player.getAttribute(Attribute.MAX_HEALTH)!!.value.toInt() / 2}❤</color> <reset>${e.player.name}: ${(e.message() as TextComponent).content()}</reset>"))
     }
 }

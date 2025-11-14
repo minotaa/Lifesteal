@@ -1,0 +1,11 @@
+options:
+  enchanting: false
+  resurrecting: false
+  smithing: false
+  nether: false
+  end: false
+  max-lifesteal-hearts: 20.0
+  ban-on-death: true
+  netherite-ingot-crafting: false
+  homes: false
+  combat-tag: false

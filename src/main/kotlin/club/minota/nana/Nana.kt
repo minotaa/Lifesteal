@@ -76,6 +76,9 @@ class Nana : JavaPlugin() {
         Bukkit.getServer().pluginManager.registerEvents(PlayerInteractListener(), this)
         Bukkit.getServer().pluginManager.registerEvents(PlayerChatListener(), this)
         Bukkit.getServer().pluginManager.registerEvents(PortalListener(), this)
+        Bukkit.getServer().pluginManager.registerEvents(PlayerResurrectListener(), this)
+        Bukkit.getServer().pluginManager.registerEvents(PlayerTotemListener(), this)
+        Bukkit.getServer().pluginManager.registerEvents(DisableFeaturesListener(), this)
 
         this.getCommand("toggleend")!!.setExecutor(ToggleEndCommand())
         this.getCommand("togglenether")!!.setExecutor(ToggleNetherCommand())
@@ -102,7 +105,7 @@ class Nana : JavaPlugin() {
         tab.displaySlot = DisplaySlot.PLAYER_LIST
         Bukkit.getScheduler().runTaskTimer(this, Runnable {
             for (player in Bukkit.getOnlinePlayers()) {
-                val health = floor(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)!!.value / 2).toInt()
+                val health = floor(player.getAttribute(Attribute.MAX_HEALTH)!!.value / 2).toInt()
                 name.getScore(player.name).score = health
                 tab.getScore(player.name).score = health
             }

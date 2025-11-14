@@ -11,15 +11,20 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
 class SetHomeCommand : CommandExecutor {
-    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>?): Boolean {
+    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
         if (sender !is Player) {
             sender.sendMessage("You can't use this command as you aren't a player!")
             return false
         }
-        Settings.data!!.set("homes.${sender.uniqueId}.x", sender.location.x)
-        Settings.data!!.set("homes.${sender.uniqueId}.y", sender.location.y)
-        Settings.data!!.set("homes.${sender.uniqueId}.z", sender.location.z)
-        Settings.data!!.set("homes.${sender.uniqueId}.world", sender.location.world.name)
+        if (!Settings.config.getBoolean("options.homes")) {
+            sender.sendMessage("This command is disabled right now.")
+            return false
+        }
+
+        Settings.data.set("homes.${sender.uniqueId}.x", sender.location.x)
+        Settings.data.set("homes.${sender.uniqueId}.y", sender.location.y)
+        Settings.data.set("homes.${sender.uniqueId}.z", sender.location.z)
+        Settings.data.set("homes.${sender.uniqueId}.world", sender.location.world.name)
         Settings.save()
         sender.sendMessage(MiniMessage.miniMessage().deserialize("<green>Successfully set your home to your location!"))
         return true
@@ -27,9 +32,13 @@ class SetHomeCommand : CommandExecutor {
 }
 
 class HomeCommand : CommandExecutor {
-    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>?): Boolean {
+    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
         if (sender !is Player) {
             sender.sendMessage("You can't use this command as you are not a player!")
+            return false
+        }
+        if (!Settings.config.getBoolean("options.homes")) {
+            sender.sendMessage("This command is disabled right now.")
             return false
         }
         if (CombatTagListener.tags[sender.uniqueId] != null) {
