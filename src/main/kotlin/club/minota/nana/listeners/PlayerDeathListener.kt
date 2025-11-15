@@ -39,7 +39,7 @@ class PlayerDeathListener : Listener {
             e.player.getAttribute(Attribute.MAX_HEALTH)!!.baseValue = e.player.getAttribute(
                 Attribute.MAX_HEALTH)!!.value - 2.0
             e.player.sendMessage(MiniMessage.miniMessage().deserialize("<red>[❤]</red><white> ${e.entity.killer!!.name} has taken </white><color:#eb2626>1❤</color><white> from you! You have <color:#eb2626>${e.player.getAttribute(
-                Attribute.MAX_HEALTH)!!.value.toInt() / 2}❤</color> remaining.<white>)"))
+                Attribute.MAX_HEALTH)!!.value.toInt() / 2}❤</color> remaining.<white>"))
             e.entity.killer!!.sendMessage(MiniMessage.miniMessage().deserialize("<red>[❤]</red><white> You took </white><color:#eb2626>1❤</color><white> from ${e.player.name}!"))
             if (maxHealth >= (Settings.config.getDouble("options.max-lifesteal-hearts") * 2.0)) {
                 val heartItem = ItemStack(Material.RED_DYE)
