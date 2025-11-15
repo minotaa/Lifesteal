@@ -3,6 +3,7 @@ package club.minota.nana.commands
 import club.minota.nana.Nana
 import net.kyori.adventure.text.minimessage.MiniMessage
 import org.bukkit.Material
+import org.bukkit.NamespacedKey
 import org.bukkit.attribute.Attribute
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
@@ -44,6 +45,7 @@ class WithdrawCommand : CommandExecutor {
         heartItemMeta.lore(listOf(
             MiniMessage.miniMessage().deserialize("<gray>This item, once right clicked, will grant you an extra heart!</gray>")
         ))
+        heartItemMeta.itemModel = NamespacedKey("aprilsteal", "heart")
         heartItem.itemMeta = heartItemMeta
         bulkItems(sender, arrayListOf(heartItem))
         Nana.inst.postToActivityLog("**${sender.name}** withdrew a heart! They now have ${floor(sender.getAttribute(Attribute.MAX_HEALTH)!!.value / 2).toInt()} hearts now!")

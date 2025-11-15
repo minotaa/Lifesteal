@@ -2,6 +2,7 @@ package club.minota.nana.listeners
 
 import club.minota.nana.Nana
 import net.kyori.adventure.text.TextComponent
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -13,7 +14,15 @@ import org.bukkit.event.player.PlayerQuitEvent
 class ActivityLogListener : Listener {
     @EventHandler
     fun onPlayerAdvancement(e: PlayerAdvancementDoneEvent) {
-        Nana.inst.postToActivityLog("**${e.player.name}** has completed the advancement [${(e.advancement.displayName() as TextComponent).content()}]")
+        val advancement = e.advancement
+        val key = advancement.key.toString()
+
+        if (key.contains("recipes/")) return
+
+        val displayName = advancement.display!!.title() ?: return
+        val plainText = PlainTextComponentSerializer.plainText().serialize(displayName)
+
+        Nana.inst.postToActivityLog("**${e.player.name}** has completed the advancement **${plainText}**")
     }
 
     @EventHandler

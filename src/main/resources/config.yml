@@ -5,6 +5,8 @@ options:
   nether: false
   end: false
   max-lifesteal-hearts: 20.0
+  diamonds-removed: 50
+  gold-removed: 30
   ban-on-death: true
   netherite-ingot-crafting: false
   homes: false

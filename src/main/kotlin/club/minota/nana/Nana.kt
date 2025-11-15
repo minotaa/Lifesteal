@@ -54,21 +54,6 @@ class Nana : JavaPlugin() {
         }
         Settings.save()
 
-        val heartItem = ItemStack(Material.RED_DYE)
-        val heartItemMeta = heartItem.itemMeta
-        heartItemMeta.displayName(MiniMessage.miniMessage().deserialize("<color:#eb2626>Heart Item"))
-        heartItemMeta.lore(listOf(
-            MiniMessage.miniMessage().deserialize( "<gray>This item, once right clicked, will grant you an extra heart!</gray>")
-        ))
-        heartItem.itemMeta = heartItemMeta
-        val key = NamespacedKey(this, "heart_item")
-        val recipe = ShapedRecipe(key, heartItem)
-        recipe.shape("NTN", "TGT", "NTN")
-        recipe.setIngredient('N', Material.NETHERITE_INGOT)
-        recipe.setIngredient('T', Material.TOTEM_OF_UNDYING)
-        recipe.setIngredient('G', Material.GOLDEN_APPLE)
-        Bukkit.addRecipe(recipe)
-
         Bukkit.getServer().pluginManager.registerEvents(ActivityLogListener(), this)
         Bukkit.getServer().pluginManager.registerEvents(PlayerDeathListener(), this)
         Bukkit.getServer().pluginManager.registerEvents(PlayerJoinListener(), this)
@@ -79,6 +64,8 @@ class Nana : JavaPlugin() {
         Bukkit.getServer().pluginManager.registerEvents(PlayerResurrectListener(), this)
         Bukkit.getServer().pluginManager.registerEvents(PlayerTotemListener(), this)
         Bukkit.getServer().pluginManager.registerEvents(DisableFeaturesListener(), this)
+        Bukkit.getServer().pluginManager.registerEvents(ChunkPopulateListener(), this)
+        Bukkit.getServer().pluginManager.registerEvents(OreLimiterListener(), this)
 
         this.getCommand("toggleend")!!.setExecutor(ToggleEndCommand())
         this.getCommand("togglenether")!!.setExecutor(ToggleNetherCommand())

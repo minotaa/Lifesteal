@@ -6,6 +6,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.Material
+import org.bukkit.NamespacedKey
 import org.bukkit.attribute.Attribute
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -34,8 +35,7 @@ class PlayerDeathListener : Listener {
     fun onPlayerDeath(e: PlayerDeathEvent) {
         if (e.entity.killer is Player) {
             val killer = e.entity.killer as Player
-            val maxHealth = e.player.getAttribute(Attribute.MAX_HEALTH)!!.baseValue
-            Nana.inst.postToActivityLog("**${e.entity.name}** died & lost a heart! They now have ${floor(e.player.getAttribute(Attribute.MAX_HEALTH)!!.value / 2).toInt()} hearts now!")
+            val maxHealth = killer.getAttribute(Attribute.MAX_HEALTH)!!.baseValue
             e.player.getAttribute(Attribute.MAX_HEALTH)!!.baseValue = e.player.getAttribute(
                 Attribute.MAX_HEALTH)!!.value - 2.0
             e.player.sendMessage(MiniMessage.miniMessage().deserialize("<red>!!!</red><white> ${e.entity.killer!!.name} took </white><color:#eb2626>1❤</color><white> from you! (remaining hearts: <color:#eb2626>${e.player.getAttribute(
@@ -48,14 +48,28 @@ class PlayerDeathListener : Listener {
                 heartItemMeta.lore(listOf(
                     MiniMessage.miniMessage().deserialize("<gray>This item, once right clicked, will grant you an extra heart!</gray>")
                 ))
+                heartItemMeta.itemModel = NamespacedKey("aprilsteal", "heart")
                 heartItem.itemMeta = heartItemMeta
                 e.entity.killer!!.sendMessage(MiniMessage.miniMessage().deserialize("<red>!!!</red><white> The heart item has dropped since you have full hearts, you must pick it up! <red>!!!</red>"))
                 bulkItems(killer, arrayListOf(heartItem))
             } else {
-                e.entity.killer!!.sendMessage(MiniMessage.miniMessage().deserialize("<red>!!!</red><white> You absorbed the heart! You now have <color:#eb2626>${floor(maxHealth + 2.0).toInt()}❤</color> now. <red>!!!</red>"))
+                e.entity.killer!!.sendMessage(MiniMessage.miniMessage().deserialize("<red>!!!</red><white> You absorbed the heart! You now have <color:#eb2626>${floor(maxHealth + 2.0).toInt() / 2}❤</color> now. <red>!!!</red>"))
                 killer.getAttribute(Attribute.MAX_HEALTH)!!.baseValue = maxHealth + 2.0
             }
+        } else {
+            val heartItem = ItemStack(Material.RED_DYE)
+            val heartItemMeta = heartItem.itemMeta
+            heartItemMeta.displayName(MiniMessage.miniMessage().deserialize("<color:#eb2626>Heart Item"))
+            heartItemMeta.lore(listOf(
+                MiniMessage.miniMessage().deserialize("<gray>This item, once right clicked, will grant you an extra heart!</gray>")
+            ))
+            heartItemMeta.itemModel = NamespacedKey("aprilsteal", "heart")
+            heartItem.itemMeta = heartItemMeta
+            e.drops.add(heartItem)
+            e.player.getAttribute(Attribute.MAX_HEALTH)!!.baseValue = e.player.getAttribute(
+                Attribute.MAX_HEALTH)!!.value - 2.0
         }
+        Nana.inst.postToActivityLog("**${e.entity.name}** died & lost a heart! They now have ${floor(e.player.getAttribute(Attribute.MAX_HEALTH)!!.value / 2).toInt()} hearts now!")
     }
 
     @EventHandler

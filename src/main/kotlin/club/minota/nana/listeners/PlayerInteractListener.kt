@@ -3,9 +3,13 @@ package club.minota.nana.listeners
 import club.minota.nana.Nana
 import club.minota.nana.utils.Settings
 import net.kyori.adventure.text.minimessage.MiniMessage
+import org.bukkit.Material
+import org.bukkit.NamespacedKey
 import org.bukkit.attribute.Attribute
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
+import org.bukkit.event.block.Action
+import org.bukkit.event.entity.ItemSpawnEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
@@ -73,8 +77,31 @@ class PlayerInteractListener : Listener {
     }
 
     @EventHandler
+    fun onItemSpawn(event: ItemSpawnEvent) {
+        val item = event.entity
+        val itemStack = item.itemStack
+
+        if (itemStack.type != Material.RED_DYE) return
+
+        val itemMeta = itemStack.itemMeta ?: return
+        val itemModel = itemMeta.itemModel ?: return
+
+        if (itemModel == NamespacedKey("aprilsteal", "heart")) {
+            item.isUnlimitedLifetime = true
+            item.isInvulnerable = true
+        }
+    }
+
+    @EventHandler
     fun onPlayerInteract(e: PlayerInteractEvent) {
-        if (e.hasItem() && e.item!!.hasItemMeta() && e.item!!.itemMeta.displayName() == MiniMessage.miniMessage().deserialize("<color:#eb2626>Heart Item")) {
+        val item = e.item ?: return
+        if (!item.hasItemMeta()) return
+        if (e.action != Action.RIGHT_CLICK_AIR && e.action != Action.RIGHT_CLICK_BLOCK) return
+
+        val itemMeta = item.itemMeta
+        val itemModel = itemMeta.itemModel ?: return
+
+        if (itemModel == NamespacedKey("aprilsteal", "heart")) {
             e.isCancelled = true
             val maxHealth = e.player.getAttribute(Attribute.MAX_HEALTH)!!.baseValue
             if (maxHealth >= (Settings.config.getDouble("options.max-lifesteal-hearts") * 2.0)) {
