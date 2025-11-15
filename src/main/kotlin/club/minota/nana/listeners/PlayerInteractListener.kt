@@ -111,8 +111,8 @@ class PlayerInteractListener : Listener {
 
             removeOne(e.item!!, e.player.inventory)
             e.player.getAttribute(Attribute.MAX_HEALTH)!!.baseValue = maxHealth + 2.0
-            e.player.sendMessage(MiniMessage.miniMessage().deserialize("<red>!!!</red> You have redeemed a heart item! (new hearts: <color:#eb2626>${e.player.getAttribute(
-                Attribute.MAX_HEALTH)!!.value.toInt() / 2}❤</color><white>) <red>!!!</red>"))
+            e.player.sendMessage(MiniMessage.miniMessage().deserialize("<red>[❤]</red> You have redeemed <color:#eb2626>1❤</color> and now have <color:#eb2626>${e.player.getAttribute(
+                Attribute.MAX_HEALTH)!!.value.toInt() / 2}❤</color><white>."))
             Nana.inst.postToActivityLog("**${e.player.name}** redeemed a heart! They now have ${floor(e.player.getAttribute(Attribute.MAX_HEALTH)!!.value / 2).toInt()} hearts now!")
         }
     }
