@@ -56,6 +56,7 @@ class PlayerDeathListener : Listener {
                 ))
                 heartItemMeta.itemModel = NamespacedKey("aprilsteal", "heart")
                 heartItem.itemMeta = heartItemMeta
+                e.player.world.dropItemNaturally(e.player.location, heartItem)
                 e.entity.killer!!.sendMessage(MiniMessage.miniMessage().deserialize("<red>[❤]</red><white> Your health bar is full! The heart has dropped as an item."))
                 bulkItems(killer, arrayListOf(heartItem))
             } else {
@@ -73,7 +74,7 @@ class PlayerDeathListener : Listener {
             ))
             heartItemMeta.itemModel = NamespacedKey("aprilsteal", "heart")
             heartItem.itemMeta = heartItemMeta
-            e.drops.add(heartItem)
+            e.player.world.dropItemNaturally(e.player.location, heartItem)
             e.player.getAttribute(Attribute.MAX_HEALTH)!!.baseValue = e.player.getAttribute(
                 Attribute.MAX_HEALTH)!!.value - 2.0
         }
