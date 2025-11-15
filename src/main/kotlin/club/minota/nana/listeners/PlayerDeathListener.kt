@@ -41,6 +41,12 @@ class PlayerDeathListener : Listener {
             e.player.sendMessage(MiniMessage.miniMessage().deserialize("<red>[❤]</red><white> ${e.entity.killer!!.name} has taken </white><color:#eb2626>1❤</color><white> from you! You have <color:#eb2626>${e.player.getAttribute(
                 Attribute.MAX_HEALTH)!!.value.toInt() / 2}❤</color> remaining.<white>"))
             e.entity.killer!!.sendMessage(MiniMessage.miniMessage().deserialize("<red>[❤]</red><white> You took </white><color:#eb2626>1❤</color><white> from ${e.player.name}!"))
+
+            if (e.player.getAttribute(Attribute.MAX_HEALTH)!!.value.toInt() <= 0) {
+                Bukkit.broadcast(MiniMessage.miniMessage().deserialize("<red>${e.player.name} has lost all their hearts and is now permanently dead."))
+                e.player.kick(MiniMessage.miniMessage().deserialize("You've lost all your hearts and are permanently dead."))
+            }
+
             if (maxHealth >= (Settings.config.getDouble("options.max-lifesteal-hearts") * 2.0)) {
                 val heartItem = ItemStack(Material.RED_DYE)
                 val heartItemMeta = heartItem.itemMeta
@@ -83,7 +89,6 @@ class PlayerDeathListener : Listener {
                 e.player.kick(MiniMessage.miniMessage().deserialize("You've lost all your hearts and are permanently dead."))
             }
             Nana.inst.postToActivityLog("**${e.player.name}** lost all their hearts! They're eliminated!")
-            Bukkit.broadcast(MiniMessage.miniMessage().deserialize("<red>${e.player.name} has lost all their hearts and is now permanently dead."))
             e.player.sendMessage(MiniMessage.miniMessage().deserialize("<yellow>You've been set to Spectator mode as you've lost all your hearts."))
         }
     }
