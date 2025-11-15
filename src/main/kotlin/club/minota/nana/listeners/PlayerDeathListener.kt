@@ -83,7 +83,7 @@ class PlayerDeathListener : Listener {
                 e.player.kick(MiniMessage.miniMessage().deserialize("You've lost all your hearts and are permanently dead."))
             }
             Nana.inst.postToActivityLog("**${e.player.name}** lost all their hearts! They're eliminated!")
-            Bukkit.broadcast(MiniMessage.miniMessage().deserialize("<red>${e.player.name} lost all their hearts! They're eliminated!"))
+            Bukkit.broadcast(MiniMessage.miniMessage().deserialize("<red>${e.player.name} has lost all their hearts and is now permanently dead."))
             e.player.sendMessage(MiniMessage.miniMessage().deserialize("<yellow>You've been set to Spectator mode as you've lost all your hearts."))
         }
     }
