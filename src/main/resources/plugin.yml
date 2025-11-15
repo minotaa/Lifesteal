@@ -11,18 +11,18 @@ commands:
       - togglee
       - toggletheend
       - toggle-end
-    description: Turns on/off The End.
+    description: Toggle The End.
   togglenether:
     aliases:
       - tn
       - togglen
       - togglethenether
       - toggle-nether
-    description: Turns on/off the Nether.
+    description: Toggle the Nether.
   withdraw:
     aliases:
       - wd
-    description: Takes away one heart voluntarily and grants it to you as a heart item.
+    description: Withdraw one heart from your health bar, giving it to you as an item.
   home:
     aliases:
       - h

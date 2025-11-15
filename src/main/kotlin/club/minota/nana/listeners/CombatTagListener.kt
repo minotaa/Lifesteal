@@ -16,7 +16,7 @@ class CombatTag(val player: Player) : BukkitRunnable() {
     override fun run() {
         timer -= 1
         if (timer == 0) {
-            player.sendMessage(MiniMessage.miniMessage().deserialize("<yellow>You are no longer combat tagged."))
+            player.sendMessage(MiniMessage.miniMessage().deserialize("<yellow>You are no longer in combat."))
             cancel()
             CombatTagListener.tags[player.uniqueId] = null
         }
@@ -39,14 +39,14 @@ class CombatTagListener : Listener {
             } else {
                 tags[e.entity.uniqueId] = CombatTag(e.entity as Player)
                 tags[e.entity.uniqueId]!!.runTaskTimer(Nana.inst, 0L, 20L)
-                (e.entity as Player).sendMessage(MiniMessage.miniMessage().deserialize("<red>You've been tagged for 30s! Don't log out!"))
+                (e.entity as Player).sendMessage(MiniMessage.miniMessage().deserialize("<red>You are now in combat - don't log out!"))
             }
             if (tags[e.damager.uniqueId] != null) {
                 tags[e.damager.uniqueId]!!.timer = 30
             } else {
                 tags[e.damager.uniqueId] = CombatTag(e.damager as Player)
                 tags[e.damager.uniqueId]!!.runTaskTimer(Nana.inst, 0L, 20L)
-                (e.damager as Player).sendMessage(MiniMessage.miniMessage().deserialize("<red>You've been tagged for 30s! Don't log out!"))
+                (e.damager as Player).sendMessage(MiniMessage.miniMessage().deserialize("<red>You are now in combat - don't log out!"))
             }
         }
         if (e.entity is Player && e.damager is Arrow && (e.damager as Arrow).shooter is Player) {
@@ -55,14 +55,14 @@ class CombatTagListener : Listener {
             } else {
                 tags[e.entity.uniqueId] = CombatTag(e.entity as Player)
                 tags[e.entity.uniqueId]!!.runTaskTimer(Nana.inst, 0L, 20L)
-                (e.entity as Player).sendMessage(MiniMessage.miniMessage().deserialize("<red>You've been tagged for 30s! Don't log out!"))
+                (e.entity as Player).sendMessage(MiniMessage.miniMessage().deserialize("<red>You are now in combat - don't log out!"))
             }
             if (tags[((e.damager as Arrow).shooter as Player).uniqueId] != null) {
                 tags[((e.damager as Arrow).shooter as Player).uniqueId]!!.timer = 30
             } else {
                 tags[((e.damager as Arrow).shooter as Player).uniqueId] = CombatTag(((e.damager as Arrow).shooter as Player))
                 tags[((e.damager as Arrow).shooter as Player).uniqueId]!!.runTaskTimer(Nana.inst, 0L, 20L)
-                ((e.damager as Arrow).shooter as Player).sendMessage(MiniMessage.miniMessage().deserialize("<red>You've been tagged for 30s! Don't log out!"))
+                ((e.damager as Arrow).shooter as Player).sendMessage(MiniMessage.miniMessage().deserialize("<red>You are now in combat - don't log out!"))
             }
         }
     }

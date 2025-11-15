@@ -38,30 +38,32 @@ class PlayerDeathListener : Listener {
             val maxHealth = killer.getAttribute(Attribute.MAX_HEALTH)!!.baseValue
             e.player.getAttribute(Attribute.MAX_HEALTH)!!.baseValue = e.player.getAttribute(
                 Attribute.MAX_HEALTH)!!.value - 2.0
-            e.player.sendMessage(MiniMessage.miniMessage().deserialize("<red>!!!</red><white> ${e.entity.killer!!.name} took </white><color:#eb2626>1❤</color><white> from you! (remaining hearts: <color:#eb2626>${e.player.getAttribute(
-                Attribute.MAX_HEALTH)!!.value.toInt() / 2}❤</color><white>) <red>!!!</red>"))
-            e.entity.killer!!.sendMessage(MiniMessage.miniMessage().deserialize("<red>!!!</red><white> You took </white><color:#eb2626>1❤</color><white> from ${e.player.name}! <red>!!!</red>"))
+            e.player.sendMessage(MiniMessage.miniMessage().deserialize("<red>[❤]</red><white> ${e.entity.killer!!.name} has taken </white><color:#eb2626>1❤</color><white> from you! You have <color:#eb2626>${e.player.getAttribute(
+                Attribute.MAX_HEALTH)!!.value.toInt() / 2}❤</color> remaining.<white>)"))
+            e.entity.killer!!.sendMessage(MiniMessage.miniMessage().deserialize("<red>[❤]</red><white> You took </white><color:#eb2626>1❤</color><white> from ${e.player.name}!"))
             if (maxHealth >= (Settings.config.getDouble("options.max-lifesteal-hearts") * 2.0)) {
                 val heartItem = ItemStack(Material.RED_DYE)
                 val heartItemMeta = heartItem.itemMeta
-                heartItemMeta.displayName(MiniMessage.miniMessage().deserialize("<color:#eb2626>Heart Item"))
+                heartItemMeta.displayName(MiniMessage.miniMessage().deserialize("<color:#eb2626>Heart"))
                 heartItemMeta.lore(listOf(
-                    MiniMessage.miniMessage().deserialize("<gray>This item, once right clicked, will grant you an extra heart!</gray>")
+                    MiniMessage.miniMessage().deserialize("<gray>Right-click this item to add <color:#eb2626>1❤</color> to your health bar.</gray>")
                 ))
                 heartItemMeta.itemModel = NamespacedKey("aprilsteal", "heart")
                 heartItem.itemMeta = heartItemMeta
-                e.entity.killer!!.sendMessage(MiniMessage.miniMessage().deserialize("<red>!!!</red><white> The heart item has dropped since you have full hearts, you must pick it up! <red>!!!</red>"))
+                e.entity.killer!!.sendMessage(MiniMessage.miniMessage().deserialize("<red>[❤]</red><white> Your health bar is full! The heart has dropped as an item."))
                 bulkItems(killer, arrayListOf(heartItem))
             } else {
-                e.entity.killer!!.sendMessage(MiniMessage.miniMessage().deserialize("<red>!!!</red><white> You absorbed the heart! You now have <color:#eb2626>${floor(maxHealth + 2.0).toInt() / 2}❤</color> now. <red>!!!</red>"))
+                e.entity.killer!!.sendMessage(MiniMessage.miniMessage().deserialize("<red>[❤]</red><white> You absorbed the heart! You now have <color:#eb2626>${floor(maxHealth + 2.0).toInt() / 2}❤</color>."))
                 killer.getAttribute(Attribute.MAX_HEALTH)!!.baseValue = maxHealth + 2.0
             }
         } else {
+            e.player.sendMessage(MiniMessage.miniMessage().deserialize("<red>[❤]</red> You've died and lost <color:#eb2626>1❤</color>! The heart has dropped as an item for anyone to pick up."))
+
             val heartItem = ItemStack(Material.RED_DYE)
             val heartItemMeta = heartItem.itemMeta
-            heartItemMeta.displayName(MiniMessage.miniMessage().deserialize("<color:#eb2626>Heart Item"))
+            heartItemMeta.displayName(MiniMessage.miniMessage().deserialize("<color:#eb2626>Heart"))
             heartItemMeta.lore(listOf(
-                MiniMessage.miniMessage().deserialize("<gray>This item, once right clicked, will grant you an extra heart!</gray>")
+                MiniMessage.miniMessage().deserialize("<gray>Right-click this item to add <color:#eb2626>1❤</color> to your health bar.</gray>")
             ))
             heartItemMeta.itemModel = NamespacedKey("aprilsteal", "heart")
             heartItem.itemMeta = heartItemMeta
@@ -69,7 +71,7 @@ class PlayerDeathListener : Listener {
             e.player.getAttribute(Attribute.MAX_HEALTH)!!.baseValue = e.player.getAttribute(
                 Attribute.MAX_HEALTH)!!.value - 2.0
         }
-        Nana.inst.postToActivityLog("**${e.entity.name}** died & lost a heart! They now have ${floor(e.player.getAttribute(Attribute.MAX_HEALTH)!!.value / 2).toInt()} hearts now!")
+        Nana.inst.postToActivityLog("**${e.entity.name}** died & lost a heart! They now have ${floor(e.player.getAttribute(Attribute.MAX_HEALTH)!!.value / 2).toInt()} hearts!")
     }
 
     @EventHandler
@@ -78,7 +80,7 @@ class PlayerDeathListener : Listener {
             if (!Settings.config.getBoolean("options.ban-on-death")) {
                 e.player.gameMode = GameMode.SPECTATOR
             } else {
-                e.player.kick(MiniMessage.miniMessage().deserialize("You've been banned as you lost all your hearts."))
+                e.player.kick(MiniMessage.miniMessage().deserialize("You've lost all your hearts and are permanently dead."))
             }
             Nana.inst.postToActivityLog("**${e.player.name}** lost all their hearts! They're eliminated!")
             Bukkit.broadcast(MiniMessage.miniMessage().deserialize("<red>${e.player.name} lost all their hearts! They're eliminated!"))

@@ -12,7 +12,7 @@ import org.bukkit.event.player.PlayerLoginEvent
 class PlayerJoinListener : Listener {
     @EventHandler
     fun onPlayerJoin(e: PlayerJoinEvent) {
-        if ((e.player.getAttribute(Attribute.MAX_HEALTH)!!.value.toInt() / 2) == 0) {
+        if ((e.player.getAttribute(Attribute.MAX_HEALTH)!!.value.toInt() / 2) <= 0) {
             e.player.gameMode = GameMode.SPECTATOR
             e.player.sendMessage(MiniMessage.miniMessage().deserialize("<yellow>You've been set to Spectator mode as you've lost all your hearts."))
         }
@@ -25,7 +25,7 @@ class PlayerJoinListener : Listener {
             if (Settings.config.getBoolean("options.ban-on-death")) {
                 e.disallow(
                     PlayerLoginEvent.Result.KICK_BANNED,
-                    MiniMessage.miniMessage().deserialize("You've been banned as you lost all your hearts.")
+                    MiniMessage.miniMessage().deserialize("You've lost all your hearts and are permanently dead.")
                 )
             }
         }

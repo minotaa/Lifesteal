@@ -17,7 +17,7 @@ class PlayerTotemListener : Listener {
         val clickedInventory = e.clickedInventory as PlayerInventory
         if (e.slot == 40 && e.cursor.type == Material.TOTEM_OF_UNDYING) {
             if (!Settings.config.getBoolean("options.resurrecting")) {
-                player.sendMessage(MiniMessage.miniMessage().deserialize("<red>!!!</red> Resurrection is currently disabled on this server — the Totem of Undying in your offhand will do nothing! <red>!!!</red>"))
+                player.sendMessage(MiniMessage.miniMessage().deserialize("<red>[❤]</red> Resurrection is currently disabled — the Totem of Undying in your offhand will do nothing!"))
             }
         }
     }
@@ -27,7 +27,7 @@ class PlayerTotemListener : Listener {
         val offHandItem = e.offHandItem
         if (offHandItem?.type == Material.TOTEM_OF_UNDYING) {
             if (!Settings.config.getBoolean("options.resurrecting")) {
-                e.player.sendMessage(MiniMessage.miniMessage().deserialize("<red>!!!</red> Resurrection is currently disabled on this server — the Totem of Undying in your offhand will do nothing! <red>!!!</red>"))
+                e.player.sendMessage(MiniMessage.miniMessage().deserialize("<red>[❤]</red> Resurrection is currently disabled — the Totem of Undying in your offhand will do nothing!"))
             }
         }
     }

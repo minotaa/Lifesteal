@@ -13,14 +13,14 @@ class PortalListener : Listener {
         if (e.cause == PlayerTeleportEvent.TeleportCause.END_PORTAL) {
             if (Settings.data!!.getBoolean("options.end") == false) {
                 e.isCancelled = true
-                e.player.sendMessage(MiniMessage.miniMessage().deserialize("<red>The End is currently disabled right now, try again later!</red>"))
+                e.player.sendMessage(MiniMessage.miniMessage().deserialize("<red>The End is currently disabled.</red>"))
                 return
             }
         }
         if (e.cause == PlayerTeleportEvent.TeleportCause.NETHER_PORTAL) {
             if (Settings.data!!.getBoolean("options.nether") == false) {
                 e.isCancelled = true
-                e.player.sendMessage(MiniMessage.miniMessage().deserialize("<red>The Nether is currently disabled right now, try again later!</red>"))
+                e.player.sendMessage(MiniMessage.miniMessage().deserialize("<red>The Nether is currently disabled.</red>"))
                 return
             }
         }

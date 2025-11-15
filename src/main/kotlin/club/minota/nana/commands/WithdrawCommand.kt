@@ -34,22 +34,22 @@ class WithdrawCommand : CommandExecutor {
         }
         val mh = floor(sender.getAttribute(Attribute.MAX_HEALTH)!!.value / 2).toInt()
         if (mh < 2) {
-            sender.sendMessage(MiniMessage.miniMessage().deserialize("<red>You have too little hearts to use this command!</red>"))
+            sender.sendMessage(MiniMessage.miniMessage().deserialize("<red>You don't have enough hearts to use this command!</red>"))
             return false
         }
         sender.getAttribute(Attribute.MAX_HEALTH)!!.baseValue = sender.getAttribute(
             Attribute.MAX_HEALTH)!!.value - 2.0
         val heartItem = ItemStack(Material.RED_DYE)
         val heartItemMeta = heartItem.itemMeta
-        heartItemMeta.displayName(MiniMessage.miniMessage().deserialize("<color:#eb2626>Heart Item"))
+        heartItemMeta.displayName(MiniMessage.miniMessage().deserialize("<color:#eb2626>Heart"))
         heartItemMeta.lore(listOf(
-            MiniMessage.miniMessage().deserialize("<gray>This item, once right clicked, will grant you an extra heart!</gray>")
+            MiniMessage.miniMessage().deserialize("<gray>Right-click this item to add <color:#eb2626>1❤</color> to your health bar.</gray>")
         ))
         heartItemMeta.itemModel = NamespacedKey("aprilsteal", "heart")
         heartItem.itemMeta = heartItemMeta
         bulkItems(sender, arrayListOf(heartItem))
         Nana.inst.postToActivityLog("**${sender.name}** withdrew a heart! They now have ${floor(sender.getAttribute(Attribute.MAX_HEALTH)!!.value / 2).toInt()} hearts now!")
-        sender.sendMessage(MiniMessage.miniMessage().deserialize("<yellow>Successfully granted you a Heart Item! If your inventory is full, it might've been dropped on the floor!"))
+        sender.sendMessage(MiniMessage.miniMessage().deserialize("<yellow>Successfully withdrew <color:#eb2626>1❤</color>! If your inventory is full, it has been dropped on the floor."))
         return true
     }
 }
