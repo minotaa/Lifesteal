@@ -81,13 +81,15 @@ class PlayerInteractListener : Listener {
         val item = event.entity
         val itemStack = item.itemStack
 
-        if (itemStack.type != Material.RED_DYE) return
+        if (itemStack.type != Material.RED_DYE && itemStack.type != Material.SKULL_BANNER_PATTERN) return
 
         val itemMeta = itemStack.itemMeta ?: return
         val itemModel = itemMeta.itemModel ?: return
 
         if (itemModel == NamespacedKey("aprilsteal", "heart")) {
             item.isUnlimitedLifetime = true
+            item.isInvulnerable = true
+        } else if (itemModel == NamespacedKey("aprilsteal", "key")) {
             item.isInvulnerable = true
         }
     }

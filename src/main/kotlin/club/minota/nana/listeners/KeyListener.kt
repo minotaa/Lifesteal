@@ -54,13 +54,10 @@ class KeySystem : Listener {
     fun onPlayerDeath(event: PlayerDeathEvent) {
         val deadPlayer = event.entity
 
-        // Store the inventory
+        // Store the inventory directly from the player's inventory before it's cleared
         val inventory = mutableMapOf<Int, ItemStack>()
-        event.drops.forEach { item ->
-            val slot = deadPlayer.inventory.first(item)
-            if (slot != -1) {
-                inventory[slot] = item.clone()
-            }
+        deadPlayer.inventory.contents.forEachIndexed { index, item ->
+            item?.let { inventory[index] = it.clone() }
         }
 
         // Clear the drops so items don't drop normally
@@ -301,6 +298,7 @@ class KeySystem : Listener {
             mm.deserialize("<gray>Key ID: $keyId</gray>"),
             mm.deserialize("<gray>Right-click to claim dropped items</gray>")
         ))
+        meta?.itemModel = NamespacedKey("aprilsteal", "key")
         // Store the key ID in persistent data
         meta?.persistentDataContainer?.set(keyIdKey, PersistentDataType.STRING, keyId)
         item.itemMeta = meta
