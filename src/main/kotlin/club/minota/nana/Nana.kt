@@ -1,5 +1,6 @@
 package club.minota.nana
 
+import KeySystem
 import club.minota.nana.commands.*
 import club.minota.nana.listeners.*
 import club.minota.nana.utils.Settings
@@ -66,6 +67,7 @@ class Nana : JavaPlugin() {
         Bukkit.getServer().pluginManager.registerEvents(DisableFeaturesListener(), this)
         Bukkit.getServer().pluginManager.registerEvents(ChunkPopulateListener(), this)
         Bukkit.getServer().pluginManager.registerEvents(OreLimiterListener(), this)
+        Bukkit.getServer().pluginManager.registerEvents(KeySystem(), this)
 
         this.getCommand("toggleend")!!.setExecutor(ToggleEndCommand())
         this.getCommand("togglenether")!!.setExecutor(ToggleNetherCommand())

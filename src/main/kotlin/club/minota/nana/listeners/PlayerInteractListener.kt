@@ -105,7 +105,7 @@ class PlayerInteractListener : Listener {
             e.isCancelled = true
             val maxHealth = e.player.getAttribute(Attribute.MAX_HEALTH)!!.baseValue
             if (maxHealth >= (Settings.config.getDouble("options.max-lifesteal-hearts") * 2.0)) {
-                e.player.sendMessage(MiniMessage.miniMessage().deserialize("<red>!!!</red> You are at the maximum amount of extra health."))
+                e.player.sendMessage(MiniMessage.miniMessage().deserialize("<red>[❤]</red> You are at the maximum amount of extra health."))
                 return
             }
 

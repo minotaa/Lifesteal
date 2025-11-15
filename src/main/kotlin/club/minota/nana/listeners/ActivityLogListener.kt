@@ -34,9 +34,4 @@ class ActivityLogListener : Listener {
     fun onPlayerQuit(e: PlayerQuitEvent) {
         Nana.inst.postToActivityLog("**${e.player.name}** has left the server! (${Bukkit.getOnlinePlayers().size} online)")
     }
-
-    @EventHandler
-    fun onPlayerDeath(e: PlayerDeathEvent) {
-        Nana.inst.postToActivityLog((e.deathMessage() as TextComponent).content())
-    }
 }

@@ -136,7 +136,7 @@ class OreLimiterListener : Listener {
 
         for (x in 0..16) {
             for (y in 0..256) {
-                for (z in 0..16) {
+                for (z in 0..15) {
                     val block = chunk.getBlock(x, y, z)
 
                     if (checked.contains(block)) continue

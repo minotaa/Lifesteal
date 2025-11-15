@@ -14,7 +14,8 @@ class PlayerTotemListener : Listener {
     @EventHandler
     fun onInventoryClick(e: InventoryClickEvent) {
         val player = e.whoClicked as Player
-        val clickedInventory = e.clickedInventory as PlayerInventory
+        if (e.clickedInventory !is PlayerInventory) return
+        val clickedInventory = e.clickedInventory as PlayerInventory ?: return
         if (e.slot == 40 && e.cursor.type == Material.TOTEM_OF_UNDYING) {
             if (!Settings.config.getBoolean("options.resurrecting")) {
                 player.sendMessage(MiniMessage.miniMessage().deserialize("<red>[❤]</red> Resurrection is currently disabled — the Totem of Undying in your offhand will do nothing!"))
