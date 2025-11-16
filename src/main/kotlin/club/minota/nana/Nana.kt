@@ -1,6 +1,5 @@
 package club.minota.nana
 
-import KeySystem
 import club.minota.nana.commands.*
 import club.minota.nana.listeners.*
 import club.minota.nana.utils.Settings

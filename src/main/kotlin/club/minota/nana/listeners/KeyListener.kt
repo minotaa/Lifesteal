@@ -71,6 +71,7 @@ class KeySystem : Listener {
         if (preserved.isNotEmpty()) {
             preservedItems[deadPlayer.uniqueId] = PreservedItems(preserved)
             Settings.data.set("preserved_items.${deadPlayer.uniqueId}", preserved)
+            saveConfig()
         }
 
         // Clear the drops so items don't drop normally
@@ -96,7 +97,6 @@ class KeySystem : Listener {
         // Make key indestructible and set age
         droppedItem.isInvulnerable = true
         droppedItem.pickupDelay = 0
-        droppedItem.ticksLived = -32768
 
         // Track the dropped item entity
         droppedKeyEntities[droppedItem.uniqueId] = keyId
@@ -234,6 +234,7 @@ class KeySystem : Listener {
 
             preservedItems.remove(player.uniqueId)
             Settings.data.set("preserved_items.${player.uniqueId}", null)
+            saveConfig()
         }
     }
 
@@ -311,17 +312,27 @@ class KeySystem : Listener {
         }
     }
 
+    private fun saveConfig() {
+        try {
+            Settings.save()
+        } catch (e: Exception) {
+            Bukkit.getLogger().warning("Failed to save key system data: ${e.message}")
+        }
+    }
+
     // Persistence methods
     private fun persistKeyData(keyId: String, keyData: KeyData) {
         Settings.data.set("keys.$keyId.deadPlayerUuid", keyData.deadPlayerUuid)
         Settings.data.set("keys.$keyId.droppedTime", keyData.droppedTime)
         Settings.data.set("keys.$keyId.location", keyData.location)
         Settings.data.set("inventories.$keyId", keyData.inventory)
+        saveConfig()
     }
 
     private fun removePersistedKeyData(keyId: String) {
         Settings.data.set("keys.$keyId", null)
         Settings.data.set("inventories.$keyId", null)
+        saveConfig()
     }
 
     private fun loadPersistedData() {
