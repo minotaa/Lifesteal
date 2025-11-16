@@ -91,6 +91,7 @@ class PlayerInteractListener : Listener {
             item.isInvulnerable = true
         } else if (itemModel == NamespacedKey("aprilsteal", "key")) {
             item.isInvulnerable = true
+            item.isUnlimitedLifetime = true
         }
     }
 

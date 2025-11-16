@@ -1,8 +1,11 @@
+package club.minota.nana.listeners
+
 import club.minota.nana.Nana
 import club.minota.nana.listeners.CombatTagListener
 import club.minota.nana.utils.Settings
 import net.kyori.adventure.text.minimessage.MiniMessage
 import org.bukkit.Bukkit
+import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.entity.Item
 import org.bukkit.entity.Player
@@ -13,11 +16,9 @@ import org.bukkit.event.entity.EntityPickupItemEvent
 import org.bukkit.event.entity.ItemDespawnEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerJoinEvent
-import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.player.PlayerRespawnEvent
 import org.bukkit.event.block.Action
 import org.bukkit.inventory.ItemStack
-import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitTask
 import org.bukkit.persistence.PersistentDataType
 import org.bukkit.NamespacedKey
@@ -28,17 +29,7 @@ data class KeyData(
     val deadPlayerUuid: String,
     val droppedTime: Long,
     val inventory: Map<Int, ItemStack>,
-    val pickedUpBy: String? = null,
-    val pickupTime: Long? = null,
-    val timedOut: Boolean = false
-)
-
-data class QueuedInventory(
-    val keyId: String
-)
-
-data class QueuedKeyRemoval(
-    val keyId: String
+    val location: Location?
 )
 
 data class PreservedItems(
@@ -48,9 +39,7 @@ data class PreservedItems(
 class KeySystem : Listener {
     private val activeKeys = mutableMapOf<String, KeyData>()
     private val droppedKeyEntities = mutableMapOf<UUID, String>() // Item entity UUID -> Key ID
-    private val timeoutTasks = mutableMapOf<String, BukkitTask>()
-    private val queuedInventories = mutableMapOf<UUID, MutableList<QueuedInventory>>() // Dead player UUID -> queued inventories
-    private val queuedKeyRemovals = mutableMapOf<UUID, MutableList<QueuedKeyRemoval>>() // Picker UUID -> queued key removals
+    private val voidCheckTasks = mutableMapOf<String, BukkitTask>()
     private val preservedItems = mutableMapOf<UUID, PreservedItems>() // Player UUID -> preserved items
     private val mm = MiniMessage.miniMessage()
     private val keyIdKey = NamespacedKey(Nana.inst, "key_id")
@@ -93,7 +82,8 @@ class KeySystem : Listener {
             keyId = keyId,
             deadPlayerUuid = deadPlayer.uniqueId.toString(),
             droppedTime = System.currentTimeMillis(),
-            inventory = inventory
+            inventory = inventory,
+            location = deadPlayer.location.clone()
         )
 
         activeKeys[keyId] = keyData
@@ -103,8 +93,49 @@ class KeySystem : Listener {
         val keyItem = createKeyItem(keyId, deadPlayer.name)
         val droppedItem = event.entity.world.dropItemNaturally(event.entity.location, keyItem)
 
+        // Make key indestructible and set age
+        droppedItem.isInvulnerable = true
+        droppedItem.pickupDelay = 0
+        droppedItem.ticksLived = -32768
+
         // Track the dropped item entity
         droppedKeyEntities[droppedItem.uniqueId] = keyId
+
+        // Send location to player
+        val loc = deadPlayer.location
+        deadPlayer.sendMessage(mm.deserialize(
+            "<gray>[☠]</gray><white> Your key dropped at </white><yellow>X: ${loc.blockX}, Y: ${loc.blockY}, Z: ${loc.blockZ}</yellow>"
+        ))
+
+        // Start void check task
+        startVoidCheck(keyId, droppedItem)
+    }
+
+    private fun startVoidCheck(keyId: String, droppedItem: Item) {
+        val task = Bukkit.getScheduler().runTaskTimer(Nana.inst, Runnable {
+            // Check if item fell into void (Y < -64 for most worlds)
+            if (droppedItem.location.y < -64) {
+                val keyData = activeKeys[keyId] ?: return@Runnable
+                val deadPlayer = Bukkit.getPlayer(UUID.fromString(keyData.deadPlayerUuid))
+
+                if (deadPlayer != null && deadPlayer.isOnline) {
+                    // Give key directly to player
+                    val keyItem = createKeyItem(keyId, deadPlayer.name)
+                    deadPlayer.inventory.addItem(keyItem)
+                    deadPlayer.sendMessage(mm.deserialize("<gray>[☠]</gray><white> Your key fell into the void and was returned to you!</white>"))
+                }
+
+                // Remove the dropped item
+                droppedItem.remove()
+                droppedKeyEntities.remove(droppedItem.uniqueId)
+
+                // Cancel this task
+                voidCheckTasks[keyId]?.cancel()
+                voidCheckTasks.remove(keyId)
+            }
+        }, 10L, 10L) // Check every 0.5 seconds
+
+        voidCheckTasks[keyId] = task
     }
 
     @EventHandler
@@ -112,9 +143,11 @@ class KeySystem : Listener {
         val itemEntity = event.entity
         val keyId = droppedKeyEntities[itemEntity.uniqueId] ?: return
 
-        // Key despawned naturally, return to dead player
+        // Key should never despawn since it's indestructible, but just in case
+        // cancel the void check
         droppedKeyEntities.remove(itemEntity.uniqueId)
-        returnKeyToDeadPlayer(keyId, "despawn")
+        voidCheckTasks[keyId]?.cancel()
+        voidCheckTasks.remove(keyId)
     }
 
     @EventHandler
@@ -130,26 +163,15 @@ class KeySystem : Listener {
         val meta = item.itemMeta ?: return
         val keyId = meta.persistentDataContainer.get(keyIdKey, PersistentDataType.STRING) ?: return
 
-        // Remove from tracked dropped entities
+        // Remove from tracked dropped entities and cancel void check
         droppedKeyEntities.remove(itemEntity.uniqueId)
+        voidCheckTasks[keyId]?.cancel()
+        voidCheckTasks.remove(keyId)
 
         // Check if this key exists
         val keyData = activeKeys[keyId] ?: return
 
-        // If key hasn't been picked up yet, mark it as picked up and start timeout
-        if (keyData.pickedUpBy == null) {
-            val updatedKeyData = keyData.copy(
-                pickedUpBy = entity.uniqueId.toString(),
-                pickupTime = System.currentTimeMillis()
-            )
-            activeKeys[keyId] = updatedKeyData
-            persistKeyData(keyId, updatedKeyData)
-
-            // Start timeout task (1 hour)
-            scheduleTimeout(keyId)
-
-            entity.sendMessage(mm.deserialize("<gray>[☠]</gray><white> You picked up a key from </white><yellow>${Bukkit.getOfflinePlayer(UUID.fromString(keyData.deadPlayerUuid)).name}</yellow><white>! Use it within 1 hour or it will be returned.</white>"))
-        }
+        entity.sendMessage(mm.deserialize("<gray>[☠]</gray><white> You picked up a key from </white><yellow>${Bukkit.getOfflinePlayer(UUID.fromString(keyData.deadPlayerUuid)).name}</yellow><white>!</white>"))
     }
 
     @EventHandler
@@ -179,14 +201,6 @@ class KeySystem : Listener {
             return
         }
 
-        // Check if key has timed out - if so, only the dead player can use it
-        if (keyData.timedOut) {
-            if (event.player.uniqueId.toString() != keyData.deadPlayerUuid) {
-                event.player.sendMessage(mm.deserialize("<gray>[☠]</gray><white> This key has expired! Only the owner can use it now.</white>"))
-                return
-            }
-        }
-
         // Give player the inventory
         val items = ArrayList(keyData.inventory.values)
         bulkItems(event.player, items)
@@ -194,10 +208,6 @@ class KeySystem : Listener {
         // Remove key from system - it's been redeemed
         activeKeys.remove(keyId)
         removePersistedKeyData(keyId)
-
-        // Cancel any active tasks
-        timeoutTasks[keyId]?.cancel()
-        timeoutTasks.remove(keyId)
 
         // Remove the key item
         item.amount = 0
@@ -225,156 +235,15 @@ class KeySystem : Listener {
             preservedItems.remove(player.uniqueId)
             Settings.data.set("preserved_items.${player.uniqueId}", null)
         }
-
-        // Process queued keys for respawn
-        queuedInventories[player.uniqueId]?.let { queued ->
-            Bukkit.getScheduler().runTaskLater(Nana.inst, Runnable {
-                queued.forEach { queuedInventory ->
-                    val keyData = activeKeys[queuedInventory.keyId]
-                    if (keyData != null) {
-                        // Give the key back to player
-                        val keyItem = createKeyItem(queuedInventory.keyId, player.name)
-                        player.inventory.addItem(keyItem)
-                        player.sendMessage(mm.deserialize("<gray>[☠]</gray><white> Your key was returned to your inventory!</white>"))
-                    }
-                }
-                queuedInventories.remove(player.uniqueId)
-                Settings.data.set("queued_inventories.${player.uniqueId}", null)
-            }, 1L)
-        }
     }
 
-    @EventHandler
-    fun onPlayerJoin(event: PlayerJoinEvent) {
-        val player = event.player
-
-        // Process queued key removals first
-        queuedKeyRemovals[player.uniqueId]?.let { queuedRemovals ->
-            queuedRemovals.forEach { removal ->
-                // Remove the key from their inventory
-                player.inventory.contents.forEachIndexed { index, item ->
-                    if (item != null && item.type == Material.SKULL_BANNER_PATTERN) {
-                        val meta = item.itemMeta
-                        val storedKeyId = meta?.persistentDataContainer?.get(keyIdKey, PersistentDataType.STRING)
-                        if (storedKeyId == removal.keyId) {
-                            player.inventory.setItem(index, null)
-                        }
-                    }
-                }
-            }
-            if (queuedRemovals.isNotEmpty()) {
-                player.sendMessage(mm.deserialize("<gray>[☠]</gray><white> Your expired keys have been removed!</white>"))
-            }
-            queuedKeyRemovals.remove(player.uniqueId)
-            Settings.data.set("queued_key_removals.${player.uniqueId}", null)
-        }
-
-        // Resume timeout tasks for keys this player picked up
-        activeKeys.forEach { (keyId, keyData) ->
-            if (keyData.pickedUpBy == player.uniqueId.toString() && keyData.pickupTime != null && !keyData.timedOut) {
-                val elapsedTime = System.currentTimeMillis() - keyData.pickupTime
-                val remainingTime = 3_600_000L - elapsedTime // 1 hour in ms
-
-                if (remainingTime > 0) {
-                    val remainingTicks = remainingTime / 50L
-                    val task = Bukkit.getScheduler().runTaskLater(Nana.inst, Runnable {
-                        handleTimeout(keyId)
-                    }, remainingTicks)
-                    timeoutTasks[keyId] = task
-                } else {
-                    // Timeout already expired while offline
-                    handleTimeout(keyId)
-                }
-            }
-        }
-    }
-
-    @EventHandler
-    fun onPlayerQuit(event: PlayerQuitEvent) {
-        val player = event.player
-
-        // Find any keys picked up by this player and cancel their timeout tasks
-        activeKeys.forEach { (keyId, keyData) ->
-            if (keyData.pickedUpBy == player.uniqueId.toString()) {
-                timeoutTasks[keyId]?.cancel()
-                timeoutTasks.remove(keyId)
-            }
-        }
-    }
-
-    private fun scheduleTimeout(keyId: String) {
-        val task = Bukkit.getScheduler().runTaskLater(Nana.inst, Runnable {
-            handleTimeout(keyId)
-        }, 72000L) // 1 hour in ticks (3600 seconds * 20 ticks)
-
-        timeoutTasks[keyId] = task
-    }
-
-    private fun handleTimeout(keyId: String) {
-        val keyData = activeKeys[keyId] ?: return
-
-        // Mark key as timed out
-        val updatedKeyData = keyData.copy(timedOut = true)
-        activeKeys[keyId] = updatedKeyData
-        persistKeyData(keyId, updatedKeyData)
-
-        // Remove key from picker's inventory (if they have it)
-        if (keyData.pickedUpBy != null) {
-            val pickedUpByUuid = UUID.fromString(keyData.pickedUpBy)
-            val pickedUpByPlayer = Bukkit.getPlayer(pickedUpByUuid)
-
-            if (pickedUpByPlayer != null && pickedUpByPlayer.isOnline) {
-                // Remove the key from their inventory
-                pickedUpByPlayer.inventory.contents.forEachIndexed { index, item ->
-                    if (item != null && item.type == Material.SKULL_BANNER_PATTERN) {
-                        val meta = item.itemMeta
-                        val storedKeyId = meta?.persistentDataContainer?.get(keyIdKey, PersistentDataType.STRING)
-                        if (storedKeyId == keyId) {
-                            pickedUpByPlayer.inventory.setItem(index, null)
-                            pickedUpByPlayer.sendMessage(mm.deserialize("<gray>[☠]</gray><white> Your key expired and was locked to the owner!</white>"))
-                        }
-                    }
-                }
-            } else {
-                // Player is offline, queue the removal for next login
-                val queuedRemovals = queuedKeyRemovals.getOrPut(pickedUpByUuid) { mutableListOf() }
-                queuedRemovals.add(QueuedKeyRemoval(keyId))
-                Settings.data.set("queued_key_removals.$pickedUpByUuid", queuedRemovals)
-            }
-        }
-
-        // Return key to dead player
-        returnKeyToDeadPlayer(keyId, "timeout")
-
-        // Cancel and remove task
-        timeoutTasks[keyId]?.cancel()
-        timeoutTasks.remove(keyId)
-    }
-
-    private fun returnKeyToDeadPlayer(keyId: String, reason: String) {
-        val keyData = activeKeys[keyId] ?: return
-        val deadPlayerUuid = UUID.fromString(keyData.deadPlayerUuid)
-        val deadPlayer = Bukkit.getPlayer(deadPlayerUuid)
-
-        if (deadPlayer != null && deadPlayer.isOnline) {
-            // Check if player is alive
-            if (!deadPlayer.isDead) {
-                // Player is alive, give key back immediately
-                val keyItem = createKeyItem(keyId, deadPlayer.name)
-                deadPlayer.inventory.addItem(keyItem)
-                deadPlayer.sendMessage(mm.deserialize("<gray>[☠]</gray><white> Your key was returned to your inventory!</white>"))
-            } else {
-                // Player is dead, queue for respawn
-                val queued = queuedInventories.getOrPut(deadPlayerUuid) { mutableListOf() }
-                queued.add(QueuedInventory(keyId))
-                Settings.data.set("queued_inventories.$deadPlayerUuid", queued)
-            }
-        } else {
-            // Player is offline, queue for next login
-            val queued = queuedInventories.getOrPut(deadPlayerUuid) { mutableListOf() }
-            queued.add(QueuedInventory(keyId))
-            Settings.data.set("queued_inventories.$deadPlayerUuid", queued)
-        }
+    // Public function to get key location for commands
+    fun getKeyLocation(playerUuid: UUID): Location? {
+        // Find the most recent key for this player
+        return activeKeys.values
+            .filter { it.deadPlayerUuid == playerUuid.toString() }
+            .maxByOrNull { it.droppedTime }
+            ?.location
     }
 
     private fun shouldPreserveItem(item: ItemStack): Boolean {
@@ -421,7 +290,9 @@ class KeySystem : Listener {
             mm.deserialize("<gray>Key ID: $keyId</gray>"),
             mm.deserialize("<gray>Right-click to claim dropped items</gray>")
         ))
+        meta?.itemModel = NamespacedKey("aprilsteal", "key")
         meta?.persistentDataContainer?.set(keyIdKey, PersistentDataType.STRING, keyId)
+
         item.itemMeta = meta
         return item
     }
@@ -444,9 +315,7 @@ class KeySystem : Listener {
     private fun persistKeyData(keyId: String, keyData: KeyData) {
         Settings.data.set("keys.$keyId.deadPlayerUuid", keyData.deadPlayerUuid)
         Settings.data.set("keys.$keyId.droppedTime", keyData.droppedTime)
-        Settings.data.set("keys.$keyId.pickedUpBy", keyData.pickedUpBy)
-        Settings.data.set("keys.$keyId.pickupTime", keyData.pickupTime)
-        Settings.data.set("keys.$keyId.timedOut", keyData.timedOut)
+        Settings.data.set("keys.$keyId.location", keyData.location)
         Settings.data.set("inventories.$keyId", keyData.inventory)
     }
 
@@ -461,29 +330,11 @@ class KeySystem : Listener {
         keysSection?.getKeys(false)?.forEach { keyId ->
             val deadPlayerUuid = Settings.data.getString("keys.$keyId.deadPlayerUuid") ?: return@forEach
             val droppedTime = Settings.data.getLong("keys.$keyId.droppedTime")
-            val pickedUpBy = Settings.data.getString("keys.$keyId.pickedUpBy")
-            val pickupTime = if (Settings.data.contains("keys.$keyId.pickupTime")) {
-                Settings.data.getLong("keys.$keyId.pickupTime")
-            } else null
-            val timedOut = Settings.data.getBoolean("keys.$keyId.timedOut", false)
+            val location = Settings.data.getLocation("keys.$keyId.location")
             val inventory = Settings.data.get("inventories.$keyId") as? Map<Int, ItemStack> ?: emptyMap()
 
-            val keyData = KeyData(keyId, deadPlayerUuid, droppedTime, inventory, pickedUpBy, pickupTime, timedOut)
+            val keyData = KeyData(keyId, deadPlayerUuid, droppedTime, inventory, location)
             activeKeys[keyId] = keyData
-        }
-
-        // Load queued inventories
-        val queuedInventoriesSection = Settings.data.getConfigurationSection("queued_inventories")
-        queuedInventoriesSection?.getKeys(false)?.forEach { playerUuidStr ->
-            val queued = Settings.data.get("queued_inventories.$playerUuidStr") as? List<QueuedInventory> ?: return@forEach
-            queuedInventories[UUID.fromString(playerUuidStr)] = queued.toMutableList()
-        }
-
-        // Load queued key removals
-        val queuedKeyRemovalsSection = Settings.data.getConfigurationSection("queued_key_removals")
-        queuedKeyRemovalsSection?.getKeys(false)?.forEach { playerUuidStr ->
-            val queued = Settings.data.get("queued_key_removals.$playerUuidStr") as? List<QueuedKeyRemoval> ?: return@forEach
-            queuedKeyRemovals[UUID.fromString(playerUuidStr)] = queued.toMutableList()
         }
 
         // Load preserved items
@@ -501,7 +352,7 @@ class KeySystem : Listener {
     }
 
     fun shutdown() {
-        timeoutTasks.values.forEach { it.cancel() }
+        voidCheckTasks.values.forEach { it.cancel() }
         saveAllData()
     }
 }
