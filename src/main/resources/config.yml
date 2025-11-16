@@ -12,3 +12,5 @@ options:
   homes: false
   combat-tag: false
   villager-trading: false
+  heart-dropping: true
+  absorbing: true

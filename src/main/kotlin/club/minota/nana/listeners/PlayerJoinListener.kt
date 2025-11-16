@@ -13,7 +13,7 @@ class PlayerJoinListener : Listener {
     @EventHandler
     fun onPlayerJoin(e: PlayerJoinEvent) {
         if ((e.player.getAttribute(Attribute.MAX_HEALTH)!!.value.toInt() / 2) <= 0) {
-            if (Settings.config.getBoolean("options.ban-on-death")) {
+            if (Settings.config.getBoolean("options.ban-on-death") && !e.player.isOp) {
                 e.player.kick(MiniMessage.miniMessage().deserialize("You've lost all your hearts and are permanently dead."))
             } else {
                 e.player.gameMode = GameMode.SPECTATOR

@@ -70,7 +70,9 @@ class KeySystem : Listener {
         // Store preserved items
         if (preserved.isNotEmpty()) {
             preservedItems[deadPlayer.uniqueId] = PreservedItems(preserved)
-            Settings.data.set("preserved_items.${deadPlayer.uniqueId}", preserved)
+            preserved.forEachIndexed { index, item ->
+                Settings.data.set("preserved_items.${deadPlayer.uniqueId}.$index", item)
+            }
             saveConfig()
         }
 
@@ -94,9 +96,8 @@ class KeySystem : Listener {
         val keyItem = createKeyItem(keyId, deadPlayer.name)
         val droppedItem = event.entity.world.dropItemNaturally(event.entity.location, keyItem)
 
-        // Make key indestructible and set age
+        // Make key indestructible
         droppedItem.isInvulnerable = true
-        droppedItem.pickupDelay = 0
 
         // Track the dropped item entity
         droppedKeyEntities[droppedItem.uniqueId] = keyId
@@ -325,7 +326,12 @@ class KeySystem : Listener {
         Settings.data.set("keys.$keyId.deadPlayerUuid", keyData.deadPlayerUuid)
         Settings.data.set("keys.$keyId.droppedTime", keyData.droppedTime)
         Settings.data.set("keys.$keyId.location", keyData.location)
-        Settings.data.set("inventories.$keyId", keyData.inventory)
+
+        // Serialize inventory manually
+        keyData.inventory.forEach { (slot, item) ->
+            Settings.data.set("inventories.$keyId.$slot", item)
+        }
+
         saveConfig()
     }
 
@@ -342,7 +348,17 @@ class KeySystem : Listener {
             val deadPlayerUuid = Settings.data.getString("keys.$keyId.deadPlayerUuid") ?: return@forEach
             val droppedTime = Settings.data.getLong("keys.$keyId.droppedTime")
             val location = Settings.data.getLocation("keys.$keyId.location")
-            val inventory = Settings.data.get("inventories.$keyId") as? Map<Int, ItemStack> ?: emptyMap()
+
+            // Load inventory manually
+            val inventory = mutableMapOf<Int, ItemStack>()
+            val inventorySection = Settings.data.getConfigurationSection("inventories.$keyId")
+            inventorySection?.getKeys(false)?.forEach { slotStr ->
+                val slot = slotStr.toIntOrNull() ?: return@forEach
+                val item = Settings.data.get("inventories.$keyId.$slotStr") as? ItemStack
+                if (item != null) {
+                    inventory[slot] = item
+                }
+            }
 
             val keyData = KeyData(keyId, deadPlayerUuid, droppedTime, inventory, location)
             activeKeys[keyId] = keyData
@@ -351,8 +367,17 @@ class KeySystem : Listener {
         // Load preserved items
         val preservedItemsSection = Settings.data.getConfigurationSection("preserved_items")
         preservedItemsSection?.getKeys(false)?.forEach { playerUuidStr ->
-            val items = Settings.data.get("preserved_items.$playerUuidStr") as? List<ItemStack> ?: return@forEach
-            preservedItems[UUID.fromString(playerUuidStr)] = PreservedItems(items)
+            val itemsList = mutableListOf<ItemStack>()
+            val playerItemsSection = Settings.data.getConfigurationSection("preserved_items.$playerUuidStr")
+            playerItemsSection?.getKeys(false)?.forEach { indexStr ->
+                val item = Settings.data.get("preserved_items.$playerUuidStr.$indexStr") as? ItemStack
+                if (item != null) {
+                    itemsList.add(item)
+                }
+            }
+            if (itemsList.isNotEmpty()) {
+                preservedItems[UUID.fromString(playerUuidStr)] = PreservedItems(itemsList)
+            }
         }
     }
 
