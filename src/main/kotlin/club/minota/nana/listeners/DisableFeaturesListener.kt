@@ -65,6 +65,10 @@ class DisableFeaturesListener : Listener {
             e.isCancelled = true
             e.player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Smithing is disabled!"))
         }
+        if ((e.inventory.type == InventoryType.MERCHANT) && !Settings.config.getBoolean("options.villager-trading")) {
+            e.isCancelled = true
+            e.player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Trading is disabled!"))
+        }
     }
 
     @EventHandler

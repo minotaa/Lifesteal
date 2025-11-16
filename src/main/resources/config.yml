@@ -11,3 +11,4 @@ options:
   netherite-ingot-crafting: false
   homes: false
   combat-tag: false
+  villager-trading: false
